@@ -1,7 +1,7 @@
 #########################################
 # Daniel Monteiro Ribeiro               #
 # RA: 176231                            #
-# Laboratório 01 - Teoria dos Grafos    #
+# Laboratório 02 - Teoria dos Grafos    #
 #########################################
 
 class Graph:
@@ -98,6 +98,66 @@ class Graph:
                 right = mid - 1
         return left, False
     
+    # Transforma lista de adjacências em matriz de adjacências
+    def adj_matrix(self):
+        n = self.get_order()
+        adj_matrix = [[0] * n for _ in range(n)]
+
+        ordered_vertices = sorted(self.adj_list.keys())
+        for i in range(n):
+            u = ordered_vertices[i]
+            for j in range(n):
+                v = ordered_vertices[j]
+                adj_matrix[i][j] = 1 if v in self.adj_list[u] else 0
+        return adj_matrix
+    
+# Retorna a quantidade de ciclos de comprimento exatamente quatro
+def count_C4(adj_matrix, n):
+    count = 0
+    # Para cada combinação de quatro vértices, verifica se eles formam um ciclo de comprimento quatro
+    for i in range(n):
+        for j in range(i+1, n):
+            for k in range(j+1, n):
+                for l in range(k+1, n):
+                    count += is_there_a_cycle(adj_matrix, i, j, k, l)
+    return count
+
+# Função alternativa com complexidade de tempo O(n^3), gerada por IA. Contudo, ainda não passa em todos os testes.
+# def count_C4(adj_matrix, n):
+#     count = 0
+
+#     for u in range(n):
+#         for v in range(u+1, n):
+#             common = 0
+
+#             # conta vizinhos em comum de u e v
+#             for w in range(n):
+#                 if adj_matrix[u][w] and adj_matrix[v][w]:
+#                     common += 1
+
+#             # adiciona número de C4 formados por esse par
+#             if common >= 2:
+#                 count += (common * (common - 1)) // 2
+
+#     return count // 2
+
+
+def is_there_a_cycle(adj_matrix, i, j, k, l):
+    # Se o grau mínimo dos vértices for maior ou igual a 2, então eles formam ao menos um ciclo de comprimento quatro (demonstração no arquivo README.md)
+    sum = 0
+    sum += adj_matrix[i][i] + adj_matrix[i][j] + adj_matrix[i][k] + adj_matrix[i][l]
+    sum += adj_matrix[j][i] + adj_matrix[j][j] + adj_matrix[j][k] + adj_matrix[j][l]
+    sum += adj_matrix[k][i] + adj_matrix[k][j] + adj_matrix[k][k] + adj_matrix[k][l]
+    sum += adj_matrix[l][i] + adj_matrix[l][j] + adj_matrix[l][k] + adj_matrix[l][l]
+    if sum < 8:     # Se o grau mínimo dos vértices for menor que 2, então eles não formam um ciclo de comprimento quatro
+        return 0
+    elif sum <= 10: # Caso dos graus (2, 2, 2, 2) - o C4 -  ou (2, 2, 3, 3) formam um único ciclo de tamanho 4
+        return 1
+    elif sum <= 12: # Caso dos graus (3, 3, 3, 3) - o K4 - forma três ciclos de tamanho 4
+        return 3
+    return 0
+
+
 # Main
 
 graph = Graph()
@@ -108,14 +168,4 @@ for _ in range(n):
     u, v = input().split()
     graph.add_edge(u, v)
 
-u, v = input().split()
-has_edge_uv = graph.search_edge(u, v)
-
-print(f"Order: {graph.get_order()}")
-print(f"Size: {graph.get_size()}")
-print(f"Min degree: {graph.get_min_deg()}")
-print(f"Max degree: {graph.get_max_deg()}")
-print(f"Average degree: {graph.get_avg_deg():.1f}")
-print(f"Degree list: {graph.get_deg_list()}")
-graph.print_graph()
-print(has_edge_uv)
+print(f"{count_C4(graph.adj_matrix(), graph.get_order())}")
